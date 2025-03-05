@@ -1,31 +1,41 @@
-//screens/Main/AccountPager.js
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome";
+import { AuthContext } from "../../context/AuthContext";
 
 const AccountPager = ({ isHidden }) => {
+  const { user } = useContext(AuthContext);
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const heightAnim = new Animated.Value(220);
 
-  Animated.timing(heightAnim, {
-    toValue: isHidden ? 180 : 220,
-    duration: 300,
-    useNativeDriver: false,
-  }).start();
+  useEffect(() => {
+    Animated.timing(heightAnim, {
+      toValue: isHidden ? 180 : 220,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [isHidden]);
 
   const toggleBalanceVisibility = () => {
     setIsBalanceVisible(!isBalanceVisible);
   };
 
+  const formattedBalance = user?.walletAccount?.balance
+    ? `$${user.walletAccount.balance.toLocaleString()}`
+    : "$0.00";
+
+  const currency = user?.walletAccount?.currency || "CAD";
+  const fullName = user ? `${user.firstName} ${user.lastName}` : "Guest User";
+
   return (
     <Animated.View style={[styles.viewPager, { height: heightAnim }]}>
       <View style={styles.page}>
         <Text style={styles.greetingText}>Hello,</Text>
-        <Text style={styles.usernameText}>Ola Yogesh Roshan!</Text>
+        <Text style={styles.usernameText}>{fullName}</Text>
 
         <View style={styles.balanceCard}>
           <View style={styles.balanceHeader}>
-            <Text style={styles.balanceTitle}>CAD Balance</Text>
+            <Text style={styles.balanceTitle}>{currency} Balance</Text>
             <TouchableOpacity onPress={toggleBalanceVisibility}>
               <Icon
                 name={isBalanceVisible ? "eye" : "eye-slash"}
@@ -36,7 +46,7 @@ const AccountPager = ({ isHidden }) => {
             </TouchableOpacity>
           </View>
           <Text style={styles.balanceAmount}>
-            {isBalanceVisible ? "$1,200.00" : "*******"}
+            {isBalanceVisible ? formattedBalance : "*******"}
           </Text>
           <View style={styles.balanceFooter}>
             <Text style={styles.detailsText}>Tag:</Text>
@@ -54,7 +64,7 @@ const AccountPager = ({ isHidden }) => {
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
             <Icon name="money" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Withdraw</Text>
+            <Text style={styles.actionButtonText}>Transfer</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -103,7 +113,7 @@ const styles = StyleSheet.create({
   balanceTitle: {
     fontSize: 14,
     color: "#050733",
-    fontWeight: '600',
+    fontWeight: "600",
   },
   balanceAmount: {
     fontSize: 22,
@@ -123,7 +133,7 @@ const styles = StyleSheet.create({
     color: "#050733",
     fontSize: 14,
     marginRight: 2,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   copyIcon: {
     marginLeft: 5,
@@ -144,7 +154,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: "#fff",
     marginLeft: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
 

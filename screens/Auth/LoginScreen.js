@@ -1,5 +1,5 @@
 //screens/Auth/LoginScreen.js
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   View,
   Text,
@@ -9,24 +9,42 @@ import {
   TextInput,
   Image,
   Modal,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { AuthContext } from "../../context/AuthContext";
 
 const LoginScreen = () => {
-    const [email, setEmail] = useState("testaccount@smartbudget.ai");
-    const [password, setPassword] = useState("password");
-    const [showPassword, setShowPassword] = useState(false);
-    const [isModalVisible, setIsModalVisible] = useState(false);
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
-  
-    const navigation = useNavigation(); 
+  const [email, setEmail] = useState("testaccount@smartbudget.ai");
+  const [password, setPassword] = useState("password");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState("");
 
-    const handleLogin = () => {
-      console.log("Login with email:", email, "and password:", password);
-  
-      navigation.replace("Landing"); 
-    };
+  const navigation = useNavigation();
+  const { login } = useContext(AuthContext);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await login(email, password);
+      Alert.alert("Success", "Login successful.");
+      navigation.replace("Landing");
+    } catch (error) {
+      console.error("Login error:", error);
+      Alert.alert("Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={{ backgroundColor: "white" }}>
@@ -76,7 +94,11 @@ const LoginScreen = () => {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Sign In</Text>
+            {loading ? (
+              <ActivityIndicator size="small" color="white" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -151,10 +173,6 @@ const styles = StyleSheet.create({
     width: "90%",
     marginTop: 20,
     borderRadius: 15,
-    shadowColor: "#000",
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 2 },
     elevation: 5,
   },
   textInput: {
@@ -176,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 30,
     width: "80%",
-    alignSelf: 'center'
+    alignSelf: "center",
   },
   buttonText: {
     color: "white",
@@ -192,22 +210,20 @@ const styles = StyleSheet.create({
     color: "#060740",
     fontSize: 16,
   },
-  alternativeLoginImages: {
-    width: 40,
-    height: 40,
-    alignSelf: "center",
-  },
-  altButtons: {
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "gray",
-    width: 100,
-    height: 50,
-    justifyContent: "center",
+  passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 20,
-    alignSelf: "center",
+    marginTop: 10,
+    borderBottomColor: "#ddd",
+    borderBottomWidth: 1,
+    backgroundColor: "white",
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  eyeIcon: {
+    padding: 10,
   },
   modalContainer: {
     flex: 1,
@@ -220,10 +236,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: "80%",
-    shadowColor: "#000",
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
     elevation: 5,
   },
   modalTitle: {
@@ -244,7 +256,6 @@ const styles = StyleSheet.create({
   modalButton: {
     backgroundColor: "#060740",
     paddingVertical: 10,
-    paddingHorizontal: 20,
     borderRadius: 25,
     height: 40,
     justifyContent: "center",
@@ -259,28 +270,13 @@ const styles = StyleSheet.create({
   },
   alreadyHaveAccountText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     marginRight: 4,
   },
   signUpText: {
     color: "#060740",
     fontSize: 16,
-    fontWeight: '500'
-  },
-  passwordContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-    borderBottomColor: "#ddd",
-    borderBottomWidth: 1,
-    backgroundColor: "white",
-  },
-  passwordInput: {
-    flex: 1,
-    paddingHorizontal: 10,
-  },
-  eyeIcon: {
-    padding: 10,
+    fontWeight: "500",
   },
 });
 

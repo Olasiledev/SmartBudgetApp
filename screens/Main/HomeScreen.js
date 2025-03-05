@@ -1,5 +1,5 @@
-//screens/Main/HomeScreen.js
-import React, { useState } from "react";
+// screens/Main/HomeScreen.js
+import React, { useState, useEffect, useContext } from "react";
 import {
   View,
   Text,
@@ -7,16 +7,43 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Animated,
+  FlatList,
+  ActivityIndicator,
 } from "react-native";
 import AccountPager from "./AccountPager";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
+import { getUserTransactions } from "../../services/api";
+import { AuthContext } from "../../context/AuthContext";
 
 const HomePage = () => {
   const navigation = useNavigation();
   const [isHidden, setIsHidden] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const { uid, loading: authLoading } = useContext(AuthContext);
   const translateY = new Animated.Value(0);
   const buttonContainerHeight = new Animated.Value(100);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        console.log("Fetching transactions for UID:", uid);
+        const data = await getUserTransactions(uid);
+        console.log("Fetched transactions:", data);
+        setTransactions(data);
+      } catch (error) {
+        console.error("Failed to load transactions:", error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!authLoading && uid) {
+      fetchTransactions();
+    }
+  }, [authLoading, uid]);
 
   const handleScroll = (event) => {
     const scrolling = event.nativeEvent.contentOffset.y;
@@ -41,10 +68,6 @@ const HomePage = () => {
     navigation.navigate("TransactionsPage", { showBackButton: true });
   };
 
-  const handleViewAccounts = () => {
-    navigation.navigate("AccountsPage");
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
@@ -55,9 +78,8 @@ const HomePage = () => {
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={() => {}}>
               <FontAwesome name="bolt" size={18} color="black" />
-              <Text style={styles.buttonText}>Hight Risk Transactions</Text>
+              <Text style={styles.buttonText}>High Risk Transactions</Text>
             </TouchableOpacity>
-        
             <TouchableOpacity style={styles.button} onPress={() => {}}>
               <FontAwesome name="money" size={18} color="black" />
               <Text style={styles.buttonText}>Flagged Activities</Text>
@@ -76,10 +98,29 @@ const HomePage = () => {
         </View>
 
         <View style={styles.transactionList}>
-          {/* transactions */}
-          <Text>Transaction 1</Text>
-          <Text>Transaction 2</Text>
-          <Text>Transaction 3</Text>
+          {loading ? (
+            <ActivityIndicator size="large" color="#060740" />
+          ) : transactions.length === 0 ? (
+            <Text>No transactions available.</Text>
+          ) : (
+            <FlatList
+              data={transactions}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={styles.transactionItem}>
+                  <Text style={styles.transactionType}>{item.transactionType}</Text>
+                  <Text style={styles.transactionAmount}>{item.amount} {item.currency}</Text>
+                  <Text style={styles.transactionDate}>
+                    {new Date(
+                      item.timestamp._seconds
+                        ? item.timestamp._seconds * 1000
+                        : item.timestamp
+                    ).toLocaleDateString()}
+                  </Text>
+                </View>
+              )}
+            />
+          )}
         </View>
       </Animated.View>
     </SafeAreaView>
@@ -87,12 +128,8 @@ const HomePage = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1 },
+  container: { flex: 1 },
   buttonContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -106,25 +143,12 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 10,
     backgroundColor: "#c3c4c9",
-    // marginLeft: 15,
-    // marginRight: 10,
-    // marginTop: 10,
     margin: 10,
     borderWidth: 0.2,
     padding: 5,
   },
-  buttonText: {
-    color: "black",
-    marginTop: 5,
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  recentActText: {
-    fontSize: 14,
-    fontWeight: "bold",
-    paddingLeft: 5,
-    paddingTop: 5,
-  },
+  buttonText: { color: "black", marginTop: 5, fontSize: 12, fontWeight: "500" },
+  recentActText: { fontSize: 14, fontWeight: "bold", paddingLeft: 5, paddingTop: 5 },
   transactionsHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -132,22 +156,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingTop: 2,
   },
-  transactionsTitle: {
-    fontSize: 14,
-    fontWeight: "600",
+  transactionsTitle: { fontSize: 14, fontWeight: "600" },
+  viewAllButton: { padding: 5 },
+  viewAllButtonText: { fontSize: 14, color: "black", fontWeight: "600" },
+  transactionList: { marginTop: 20, paddingHorizontal: 10 },
+  transactionItem: {
+    paddingVertical: 10,
+    borderBottomColor: "#ddd",
+    borderBottomWidth: 1,
   },
-  viewAllButton: {
-    padding: 5,
-  },
-  viewAllButtonText: {
-    fontSize: 14,
-    color: "black",
-    fontWeight: '600'
-  },
-  transactionList: {
-    marginTop: 20,
-    paddingHorizontal: 10,
-  },
+  transactionType: { fontSize: 14, fontWeight: "600" },
+  transactionAmount: { fontSize: 13, color: "#060740" },
+  transactionDate: { fontSize: 12, color: "#777" },
 });
 
 export default HomePage;

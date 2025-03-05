@@ -42,6 +42,14 @@ const SignUpScreen = ({ navigation }) => {
     { label: '🇨🇦 +1', value: '+1' }
   ];
 
+  const countryList = [
+    { label: "🇺🇸 United States", value: "United States" },
+    { label: "🇬🇧 United Kingdom", value: "United Kingdom" },
+    { label: "🇳🇬 Nigeria", value: "Nigeria" },
+    { label: "🇨🇦 Canada", value: "Canada" },
+    { label: "🇦🇺 Australia", value: "Australia" }
+  ];
+
   const handleDateChange = (text) => {
     setDateOfBirth(text);
     if (text.length === 10) {
@@ -50,7 +58,7 @@ const SignUpScreen = ({ navigation }) => {
 
   const handleSignUp = async () => {
     try {
-      if (!firstName || !lastName || !username || !email || !password || !confirmPassword || !selectedCountry || !phoneNumber || !dateOfBirth) {
+      if (!firstName || !lastName || !username || !email || !password || !confirmPassword || !phoneNumber || !dateOfBirth) {
         throw new Error("All fields are required");
       }
       if (password !== confirmPassword) {
@@ -59,23 +67,46 @@ const SignUpScreen = ({ navigation }) => {
       if (password.length < 6) {
         throw new Error("Password must be at least 6 characters");
       }
-
       if (!agreeTerms) {
         throw new Error("You must agree to the terms and conditions");
       }
-
+  
       setIsLoading(true);
-      setTimeout(() => {
-        setIsLoading(false);
-        Alert.alert("Success", "Sign up successful");
-        navigation.navigate("Login");
-      }, 2000);
+  
+      const response = await fetch("http://localhost:8005/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          username,
+          email,
+          password,
+          phoneNumber,
+          selectedCountry,
+          dateOfBirth,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+  
+      Alert.alert("Success", "Account created successfully!");
+  
+      navigation.navigate("Login");
     } catch (error) {
       console.error("Sign up error:", error);
       Alert.alert("Error", error.message);
+    } finally {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
@@ -182,15 +213,15 @@ const SignUpScreen = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.inputMarginTop}>
+            {/* <View style={styles.inputMarginTop}>
               <RNPickerSelect
                 onValueChange={(value) => setSelectedCountry(value)}
-                items={[{ label: "Select Country", value: null }]}
+                items={countryList}
                 style={pickerSelectStyles}
                 value={selectedCountry}
-                placeholder={{ label: "Country of residence", value: null }}
+                placeholder={{ label: "Select Country", value: null }}
               />
-            </View>
+            </View> */}
 
             <View style={styles.termsContainer}>
               <CheckBox

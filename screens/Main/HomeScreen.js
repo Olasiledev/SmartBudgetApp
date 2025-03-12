@@ -10,40 +10,46 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import AccountPager from "./AccountPager";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { FontAwesome } from "@expo/vector-icons";
 import { getUserTransactions } from "../../services/api";
 import { AuthContext } from "../../context/AuthContext";
+import AccountPager from "./AccountPager";
 
 const HomePage = () => {
   const navigation = useNavigation();
   const [isHidden, setIsHidden] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
-
   const { uid, loading: authLoading } = useContext(AuthContext);
   const translateY = new Animated.Value(0);
   const buttonContainerHeight = new Animated.Value(100);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        console.log("Fetching transactions for UID:", uid);
-        const data = await getUserTransactions(uid);
-        console.log("Fetched transactions:", data);
-        setTransactions(data);
-      } catch (error) {
-        console.error("Failed to load transactions:", error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!authLoading && uid) {
-      fetchTransactions();
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const data = await getUserTransactions(uid);
+      const sortedTransactions = data.sort((a, b) => {
+        const dateA = a.timestamp._seconds ? a.timestamp._seconds * 1000 : new Date(a.timestamp).getTime();
+        const dateB = b.timestamp._seconds ? b.timestamp._seconds * 1000 : new Date(b.timestamp).getTime();
+        return dateB - dateA;
+      });
+      setTransactions(sortedTransactions);
+    } catch (error) {
+      console.error("Failed to load transactions:", error.message);
+    } finally {
+      setLoading(false);
     }
-  }, [authLoading, uid]);
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (uid) {
+        fetchTransactions();
+      }
+    }, [uid])
+  );
 
   const handleScroll = (event) => {
     const scrolling = event.nativeEvent.contentOffset.y;
@@ -71,10 +77,9 @@ const HomePage = () => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
-        <AccountPager isHidden={isHidden} />
-
+        <AccountPager isHidden={isHidden} refreshing={refreshing} />
         <Animated.View style={[styles.recentActivityContainer, { height: buttonContainerHeight }]}>
-          <Text style={styles.recentActText}>Smart AI Activities watcher</Text>
+          <Text style={styles.recentActText}>Smart AI Activities Watcher</Text>
           <View style={styles.buttonContainer}>
             <TouchableOpacity style={styles.button} onPress={() => {}}>
               <FontAwesome name="bolt" size={18} color="black" />
@@ -89,10 +94,7 @@ const HomePage = () => {
 
         <View style={styles.transactionsHeader}>
           <Text style={styles.transactionsTitle}>Transactions</Text>
-          <TouchableOpacity
-            style={styles.viewAllButton}
-            onPress={handleViewAllTransactions}
-          >
+          <TouchableOpacity style={styles.viewAllButton} onPress={handleViewAllTransactions}>
             <Text style={styles.viewAllButtonText}>View All</Text>
           </TouchableOpacity>
         </View>

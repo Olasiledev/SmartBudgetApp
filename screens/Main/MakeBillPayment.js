@@ -14,6 +14,7 @@ import {
 } from "react-native";
 import { AuthContext } from "../../context/AuthContext";
 import { payBill } from "../../services/api";
+import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 
@@ -29,6 +30,7 @@ const billersData = {
 };
 
 const MakeBillPayment = () => {
+  const navigation = useNavigation();
   const { uid } = useContext(AuthContext);
   const [selectedCategory, setSelectedCategory] = useState("Utilities");
   const [selectedBiller, setSelectedBiller] = useState(billersData["Utilities"][0]);
@@ -59,6 +61,7 @@ const MakeBillPayment = () => {
       await payBill(payload);
       setLoading(false);
       Alert.alert("Success", "Bill payment completed successfully!");
+      navigation.goBack();
     } catch (error) {
       setLoading(false);
       console.error("Error processing bill payment:", error);

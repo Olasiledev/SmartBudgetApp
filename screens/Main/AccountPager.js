@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Animated } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -7,6 +8,9 @@ const AccountPager = ({ isHidden }) => {
   const { user } = useContext(AuthContext);
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const heightAnim = new Animated.Value(220);
+
+    const navigation = useNavigation();
+  
 
   useEffect(() => {
     Animated.timing(heightAnim, {
@@ -26,6 +30,10 @@ const AccountPager = ({ isHidden }) => {
 
   const currency = user?.walletAccount?.currency || "CAD";
   const fullName = user ? `${user.firstName} ${user.lastName}` : "Guest User";
+
+  const navigateTransfer = () => {
+    navigation.navigate("TransferScreen");
+  }
 
   return (
     <Animated.View style={[styles.viewPager, { height: heightAnim }]}>
@@ -58,14 +66,18 @@ const AccountPager = ({ isHidden }) => {
         </View>
 
         <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton}
+          onPress={() => navigation.navigate("MakeBillPayment")}
+          >
             <Icon name="exchange" size={20} color="#fff" />
-            <Text style={styles.actionButtonText}>Fund Account</Text>
+            <Text style={styles.actionButtonText}>Bill Payment</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton}
+           onPress={() => navigation.navigate("TransferScreen")}
+          >
             <Icon name="money" size={20} color="#fff" />
             <Text style={styles.actionButtonText}>Transfer</Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
         </View>
       </View>
     </Animated.View>

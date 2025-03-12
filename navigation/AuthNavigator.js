@@ -4,6 +4,8 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/Auth/LoginScreen';
 import SignUpScreen from '../screens/Auth/SignUpScreen';
+import MakeBillPayment from '../screens/Main/MakeBillPayment';
+import TransferScreen from '../screens/Main/TransferScreen';
 import MainTabs from './MainTabs';
 
 const Stack = createStackNavigator();
@@ -24,6 +26,16 @@ const AuthNavigator = () => {
            <Stack.Screen
         name="Landing"
         component={MainTabs}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MakeBillPayment"
+        component={MakeBillPayment}
+        options={{ headerShown: false }}
+      />
+     <Stack.Screen
+        name="TransferScreen"
+        component={TransferScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

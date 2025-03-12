@@ -28,14 +28,14 @@ const SavingsScreen = () => {
         if (!uid) return;
 
         const fetchedTransactions = await getUserTransactions(uid);
-        console.log('✅ Fetched transactions:', fetchedTransactions);
+        console.log('Fetched transactions:', fetchedTransactions);
         setTransactions(fetchedTransactions);
 
         const advice = await getSavingsAdvice(fetchedTransactions);
-        console.log('✅ AI Savings Advice:', advice);
+        console.log('AI Savings Advice:', advice);
         setSavingsAdvice(advice);
       } catch (error) {
-        console.error('❌ Error fetching savings advice:', error.message);
+        console.error('Error fetching savings advice:', error.message);
       } finally {
         setLoading(false);
       }
@@ -48,7 +48,7 @@ const SavingsScreen = () => {
 
   // Chart data
   const chartTransactions = transactions.slice(0, 5).map((tx) => ({
-    category: tx.aiPredictedCategory || 'Unknown',
+    category: tx.transactionType || '',
     amount: tx.amount,
   }));
 
@@ -62,7 +62,7 @@ const SavingsScreen = () => {
   };
 
   const savingsTarget = savingsAdvice?.predicted_percentage_of_total || 0;
-  const currentSavings = 0.05; // Example: 5% of income saved, replace with actual logic if needed
+  const currentSavings = 0.05;
 
   if (loading) {
     return (
@@ -75,11 +75,10 @@ const SavingsScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <Text style={styles.header}>💡 Smart Savings Insights</Text>
+        <Text style={styles.header}>Smart Savings Insights</Text>
 
-        {/* Recent Spending Overview */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🧾 Recent Spending Overview</Text>
+          <Text style={styles.cardTitle}>Recent Spending Overview</Text>
           <BarChart
             data={chartData}
             width={screenWidth - 60}
@@ -92,7 +91,7 @@ const SavingsScreen = () => {
               color: (opacity = 1) => `rgba(6, 7, 64, ${opacity})`,
               labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             }}
-            verticalLabelRotation={30}
+            verticalLabelRotation={10}
             style={styles.chartStyle}
           />
         </View>

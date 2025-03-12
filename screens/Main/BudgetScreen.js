@@ -82,7 +82,7 @@ const BudgetScreen = () => {
             <Text style={styles.cardTitle}>📅 Budget Forecast</Text>
             <LineChart
               data={chartData}
-              width={screenWidth - 60}
+              width={screenWidth - 20}
               height={260}
               yAxisLabel="$"
               chartConfig={{

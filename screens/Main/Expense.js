@@ -47,14 +47,17 @@ const ExpenseScreen = () => {
     0
   );
 
-  const categories = categorizedExpenses.map((item) => item.predicted_category || 'Unknown');
-  const amounts = categorizedExpenses.map((item) => item.withdrawal_amt || 0);
+  const aggregatedData = categorizedExpenses.reduce((acc, item) => {
+    const category = item.predicted_category || 'Unknown';
+    acc[category] = (acc[category] || 0) + (item.withdrawal_amt || 0);
+    return acc;
+  }, {});
 
   const chartData = {
-    labels: categories,
+    labels: Object.keys(aggregatedData),
     datasets: [
       {
-        data: amounts,
+        data: Object.values(aggregatedData),
       },
     ],
   };
@@ -72,21 +75,19 @@ const ExpenseScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={styles.header}>AI Expense Insights</Text>
 
-
         {/* Total Spend Card */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Total Spending</Text>
           <Text style={styles.totalAmount}>${totalSpend.toFixed(2)}</Text>
         </View>
 
-          {/*AI Heading */}
-  <Text style={styles.aiInsight}>
-    "Here's a smart breakdown of where your money is going this month. Track, analyze, and optimize your spending patterns effortlessly!"
-  </Text>
-
+        {/* AI Heading */}
+        <Text style={styles.aiInsight}>
+          "Here's a smart breakdown of where your money is going this month. Track, analyze, and optimize your spending patterns effortlessly!"
+        </Text>
 
         {/* Bar Chart */}
-        {categories.length > 0 && (
+        {Object.keys(aggregatedData).length > 0 && (
           <View style={styles.card}>
             <Text style={styles.cardTitle}>📊 Spending Breakdown</Text>
             <BarChart
@@ -116,17 +117,20 @@ const ExpenseScreen = () => {
         {/* Top Categories */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>🔝 Top Categories</Text>
-          {categories.slice(0, 3).map((cat, index) => (
-            <View key={index} style={styles.topCategory}>
-              <Text style={styles.categoryName}>{cat}</Text>
-              <Text style={styles.categoryAmount}>${amounts[index]?.toFixed(2)}</Text>
-            </View>
-          ))}
+          {Object.entries(aggregatedData)
+            .sort((a, b) => b[1] - a[1]) 
+            .slice(0, 3)
+            .map(([category, amount], index) => (
+              <View key={index} style={styles.topCategory}>
+                <Text style={styles.categoryName}>{category}</Text>
+                <Text style={styles.categoryAmount}>${amount.toFixed(2)}</Text>
+              </View>
+            ))}
         </View>
 
         {/* Recent Transactions */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Recent Transactions</Text>
+          <Text style={styles.cardTitle}>📝 Recent Transactions</Text>
           <FlatList
             data={categorizedExpenses}
             keyExtractor={(_, index) => index.toString()}

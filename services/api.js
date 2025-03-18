@@ -33,69 +33,91 @@ export const getUserTransactions = async (uid) => {
 //Expense 
 export const categorizeExpenses = async (transactions) => {
   try {
+    console.log("Raw Transactions Before Processing:", JSON.stringify(transactions, null, 2));
+
     const payload = {
-      transactions: transactions.map((tx) => ({
-        transaction_details: `${tx.transactionType || 'General'} - ${tx.billerName || tx.merchantName || tx.billerType || 'Unknown'}`,
-        date:
-          typeof tx.timestamp === 'object'
-            ? new Date(tx.timestamp._seconds * 1000).toISOString()
-            : new Date(tx.timestamp).toISOString(),
-        withdrawal_amt: tx.amount,
-        deposit_amt: 0.0,
-        category: tx.transactionType || 'General',
-      })),
+      transactions: transactions.map(tx => {
+        let transactionDetails = "";
+        if (tx.transactionType === "Bill Payment") {
+          transactionDetails = tx.billerName ? tx.billerName.trim() : "Bill Payment";
+        } else if (tx.transactionType === "Transfer") {
+          transactionDetails = tx.transactionNote 
+            ? `Transfer (${tx.transactionNote.trim()})` 
+            : "Transfer";
+        } else {
+          transactionDetails = tx.merchantName 
+            ? tx.merchantName.trim() 
+            : (tx.transactionType ? tx.transactionType.trim() : "General Purchase");
+        }
+
+        let date;
+        if (typeof tx.timestamp === "object" && tx.timestamp._seconds) {
+          date = new Date(tx.timestamp._seconds * 1000).toISOString();
+        } else {
+          date = new Date(tx.timestamp).toISOString();
+        }
+
+        let category = "";
+        if (tx.transactionType === "Bill Payment") {
+          category = tx.billerType ? tx.billerType.trim() : "Bill Payment";
+        } else if (tx.transactionType === "Transfer") {
+          category = tx.transactionNote 
+            ? tx.transactionNote.trim() 
+            : "Transfer";
+        } else {
+          category = tx.category 
+            ? tx.category.trim() 
+            : (tx.transactionType ? tx.transactionType.trim() : "General");
+        }
+
+        return {
+          transaction_details: transactionDetails,
+          date: date,
+          withdrawal_amt: tx.amount || 0,
+          deposit_amt: 0.0,
+          category: category
+        };
+      })
     };
 
-    console.log('Sending to AI for categorization:', JSON.stringify(payload, null, 2));
+    console.log("Sending to AI for categorization:", JSON.stringify(payload, null, 2));
 
-    const response = await AI_API.post('/expense/predict', payload);
-    let categorizedExpenses = response.data.predictions || [];
-
-    categorizedExpenses = categorizedExpenses.map((expense, index) => {
-      if (transactions[index].transactionType === "Transfer") {
-        return { ...expense, predicted_category: "Transfer" };
-      }
-      return expense;
-    });
-
-    console.log('AI Categorized Expenses (Final):', categorizedExpenses);
-    return { predictions: categorizedExpenses };
-
+    const response = await AI_API.post("/expense/predict", payload);
+    console.log("AI Response Categorization:", JSON.stringify(response.data, null, 2));
+    return response.data;
   } catch (error) {
-    console.error('Error categorizing expenses:', error.response?.data || error.message);
+    console.error("Error categorizing expenses:", error.response?.data || error.message);
     throw error;
   }
 };
 
 
+
+
+
 //Savings 
 export const getSavingsAdvice = async (transactions) => {
-    try {
-      const payload = {
-        transactions: transactions.map((tx) => ({
-          date: typeof tx.timestamp === 'object'
-            ? new Date(tx.timestamp._seconds * 1000).toISOString()
-            : new Date(tx.timestamp).toISOString(),
-          category: tx.transactionType || 'Unknown',
-          amount: tx.amount,
-        })),
-      };
-  
-      console.log('Sending to AI for savings advice:', JSON.stringify(payload, null, 2));
-  
-      const response = await AI_API.post('/savings/predict', payload);
-  
-      console.log('AI Savings Advice Response:', response.data);
-  
-      return response.data;
-    } catch (error) {
-      console.error(
-        'Error getting savings advice:',
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  };
+  try {
+    const payload = {
+      transactions: transactions.map((tx) => ({
+        date: typeof tx.timestamp === "object"
+          ? new Date(tx.timestamp._seconds * 1000).toISOString()
+          : new Date(tx.timestamp).toISOString(),
+
+        category: tx.billerName || tx.billerType || tx.transactionType || "Unknown",
+
+        amount: tx.amount,
+      })),
+    };
+
+    const response = await AI_API.post("/savings/predict", payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting savings advice:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
   
 
   //Budget
@@ -115,7 +137,7 @@ export const getSavingsAdvice = async (transactions) => {
         periods,
       };
   
-      console.log('🔼 Sending to AI for budget advice:', JSON.stringify(payload, null, 2));
+      console.log('Sending to AI for budget advice:', JSON.stringify(payload, null, 2));
   
       const response = await AI_API.post('/budget/forecast', payload);
   
@@ -127,6 +149,66 @@ export const getSavingsAdvice = async (transactions) => {
       throw error;
     }
   };
+
+
+  //CHAT FEATURES 
+  //chat response for budget advice
+// services/api.js
+export const getBudgetChatResponse = async (query, transactions, forecast) => {
+  try {
+    const payload = {
+      query,
+      transactions: transactions.map((tx) => ({
+        date:
+          typeof tx.timestamp === "object"
+            ? new Date(tx.timestamp._seconds * 1000).toISOString()
+            : new Date(tx.timestamp).toISOString(),
+        category: tx.transactionType || "Unknown",
+        amount: tx.amount || 0,
+      })),
+      forecast: forecast || [],
+    };
+
+    console.log("Sending budget chat query:", JSON.stringify(payload, null, 2));
+
+    const response = await AI_API.post("/budget/chat", payload);
+    
+    return response.data.response;
+  } catch (error) {
+    console.error("Error fetching AI budget chat response:", error.message);
+    return "Sorry, I couldn't process your request.";
+  }
+};
+
+  
+  
+  
+  
+  //chat response for savings advice
+  export const getSavingsChatResponse = async (query, uid) => {
+    try {
+        if (!uid) throw new Error("User ID is required.");
+
+        console.log("Fetching transactions for UID:", uid);
+        const transactions = await getUserTransactions(uid);
+        const savingsData = await getSavingsAdvice(transactions);
+
+        console.log("Sending savings chat query:", { query, transactions, predicted_savings: savingsData?.predicted_percentage_of_total || 0.2 });
+
+        const response = await AI_API.post("/savings/chat", {
+            query,
+            transactions: transactions || [],
+            predicted_savings: savingsData?.predicted_percentage_of_total || 0.2, 
+        });
+
+        return response.data.response;
+    } catch (error) {
+        console.error("Error fetching AI savings chat response:", error.response?.data || error.message);
+        return "Sorry, I couldn't process your request.";
+    }
+};
+
+  
   
 
   //Transfer

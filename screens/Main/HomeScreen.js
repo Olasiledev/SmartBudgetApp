@@ -81,14 +81,23 @@ const HomePage = () => {
         <Animated.View style={[styles.recentActivityContainer, { height: buttonContainerHeight }]}>
           <Text style={styles.recentActText}>Smart AI Activities Watcher</Text>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={() => {}}>
+            <TouchableOpacity style={styles.button} 
+              onPress={() => navigation.navigate("SavingsChatScreen", { uid: uid })}
+              >
               <FontAwesome name="bolt" size={18} color="black" />
-              <Text style={styles.buttonText}>High Risk Transactions</Text>
+              <Text style={styles.buttonText}>Savings & Budget chat</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.button} onPress={() => {}}>
+
+
+            <TouchableOpacity style={styles.button} 
+            onPress={() => navigation.navigate("FlaggedTransactions")}
+            >         
               <FontAwesome name="money" size={18} color="black" />
               <Text style={styles.buttonText}>Flagged Activities</Text>
             </TouchableOpacity>
+
+
+
           </View>
         </Animated.View>
 

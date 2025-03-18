@@ -8,11 +8,15 @@ import {
   ActivityIndicator,
   ScrollView,
   Dimensions,
+  TouchableOpacity
 } from 'react-native';
 import { getUserTransactions, getSavingsAdvice } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 import { BarChart } from 'react-native-chart-kit';
 import * as Progress from 'react-native-progress';
+import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -21,6 +25,8 @@ const SavingsScreen = () => {
   const [transactions, setTransactions] = useState([]);
   const [savingsAdvice, setSavingsAdvice] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
+  
 
   useEffect(() => {
     const loadSavingsAdvice = async () => {
@@ -98,7 +104,7 @@ const SavingsScreen = () => {
 
         {/* Savings Progress */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🎯 Savings Goal Progress</Text>
+          <Text style={styles.cardTitle}>Savings Goal Progress</Text>
           <Text style={styles.progressText}>
             You’re at {(currentSavings * 100).toFixed(1)}% of the {(
               savingsTarget * 100
@@ -124,6 +130,14 @@ const SavingsScreen = () => {
           </Text>
         </View>
       </ScrollView>
+
+            {/*Button */}
+            <TouchableOpacity style={styles.floatingButton} 
+      onPress={() => navigation.navigate("SavingsChatScreen", { uid: uid })}
+      >
+        <FontAwesome name="comment" size={24} color="#fff" />
+      </TouchableOpacity>
+
     </SafeAreaView>
   );
 };
@@ -178,6 +192,23 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#333',
   },
+    // Floating Button Style
+    floatingButton: {
+      position: 'absolute',
+      right: 20,
+      bottom: 20,
+      backgroundColor: '#060740',
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.3,
+      shadowRadius: 4,
+      elevation: 5,
+    },
 });
 
 export default SavingsScreen;

@@ -7,6 +7,9 @@ import SignUpScreen from '../screens/Auth/SignUpScreen';
 import MakeBillPayment from '../screens/Main/MakeBillPayment';
 import TransferScreen from '../screens/Main/TransferScreen';
 import MainTabs from './MainTabs';
+import FlaggedTransactionsScreen from '../screens/Main/FlaggedTransactionsScreen';
+import BudgetChatScreen from '../screens/Main/ChatScreens/BudgetChatScreen';
+import SavingsChatScreen from '../screens/Main/ChatScreens/SavingsChatScreen';
 
 const Stack = createStackNavigator();
 
@@ -36,6 +39,21 @@ const AuthNavigator = () => {
      <Stack.Screen
         name="TransferScreen"
         component={TransferScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FlaggedTransactions"
+        component={FlaggedTransactionsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="BudgetChatScreen"
+        component={BudgetChatScreen}
+        options={{ headerShown: false }}
+        />
+      <Stack.Screen
+        name="SavingsChatScreen"
+        component={SavingsChatScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

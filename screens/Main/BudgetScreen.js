@@ -1,4 +1,3 @@
-//screens/Main/BudgetScreen.js
 import React, { useState, useEffect, useContext } from 'react';
 import {
   View,
@@ -8,10 +7,13 @@ import {
   ActivityIndicator,
   ScrollView,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { getBudgetAdvice, getUserTransactions } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 import { LineChart } from 'react-native-chart-kit';
+import { FontAwesome } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -21,6 +23,7 @@ const BudgetScreen = () => {
   const [formattedAdvice, setFormattedAdvice] = useState([]);
   const [forecast, setForecast] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const loadBudget = async () => {
@@ -79,7 +82,7 @@ const BudgetScreen = () => {
         {/* Forecast Chart */}
         {forecast.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>📅 Budget Forecast</Text>
+            <Text style={styles.cardTitle}>Budget Forecast</Text>
             <LineChart
               data={chartData}
               width={screenWidth - 20}
@@ -121,6 +124,13 @@ const BudgetScreen = () => {
           })}
         </View>
       </ScrollView>
+
+      {/*Button */}
+      <TouchableOpacity style={styles.floatingButton} 
+      onPress={() => navigation.navigate("BudgetChatScreen", { uid: uid })}
+      >
+        <FontAwesome name="comment" size={24} color="#fff" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -178,6 +188,23 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 12,
     paddingHorizontal: 10,
+  },
+
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    backgroundColor: '#060740',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
   },
 });
 

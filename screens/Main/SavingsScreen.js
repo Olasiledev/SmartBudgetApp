@@ -67,7 +67,7 @@ const SavingsScreen = () => {
     ],
   };
 
-  const savingsTarget = savingsAdvice?.predicted_percentage_of_total || 0;
+  const savingsTarget = savingsAdvice?.predicted_percentage_of_total || 100;
   const currentSavings = 0.05;
 
   if (loading) {
@@ -104,16 +104,16 @@ const SavingsScreen = () => {
 
         {/* Savings Progress */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Savings Goal Progress</Text>
+          <Text style={styles.cardTitle}>🎯 Savings Goal Progress</Text>
           <Text style={styles.progressText}>
             You’re at {(currentSavings * 100).toFixed(1)}% of the {(
-              savingsTarget * 100
+              savingsTarget
             ).toFixed(1)}
             % goal
           </Text>
           <Progress.Bar
             progress={currentSavings / savingsTarget}
-            width={screenWidth - 100}
+            width={screenWidth - 30}
             height={15}
             color="#060740"
             unfilledColor="#dfe3e6"

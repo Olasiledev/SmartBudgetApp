@@ -7,6 +7,8 @@ const API = axios.create({
 
 const AI_API = axios.create({
     baseURL: "http://127.0.0.1:5000",
+    // baseURL: "https://smart-budget-ai.onrender.com",
+    
     });
 
 export const getUserTransactions = async (uid) => {
